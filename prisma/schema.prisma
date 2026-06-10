@@ -22,3 +22,8 @@ model Conversion {
   createdAt    DateTime @default(now())
   expiresAt    DateTime // createdAt + 1 hour
 }
+
+model User {
+  id       Int    @id @default(autoincrement())
+  username String
+}

@@ -4,6 +4,7 @@ import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
 import { PrismaModule } from '../prisma/prisma.module';
 import { StorageModule } from '../storage/storage.module';
+import { ConversionModule } from '../conversion/conversion.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -14,7 +15,9 @@ import { StorageModule } from '../storage/storage.module';
       format: winston.format.json(),
       transports: [new winston.transports.Console()],
     }),
+    PrismaModule,
+    StorageModule,
+    ConversionModule,
   ],
-  providers: [PrismaModule, StorageModule],
 })
 export class CommonModule {}
