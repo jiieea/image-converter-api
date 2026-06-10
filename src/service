@@ -1,0 +1,31 @@
+// src/conversion/conversion.service.ts
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class ConversionService {
+  constructor(private prisma: PrismaService) {}
+
+  async convert(file: Express.Multer.File, format: string) {
+
+    // 1. Run sharp conversion
+    const converted = await sharp(file.buffer).toFormat(format).toBuffer();
+
+    // 2. Upload to Supabase storage
+    const fileUrl = await this.storageService.upload(converted, format);
+
+    // 3. Log to database via Prisma
+    await this.prisma.conversion.create({
+      data: {
+        originalName: file.originalname,
+        originalSize: file.size,
+        fromFormat: file.mimetype.split('/')[1],
+        toFormat: format,
+        fileUrl,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000), // +1 hour
+      }
+    });
+
+    return fileUrl;
+  }
+}
