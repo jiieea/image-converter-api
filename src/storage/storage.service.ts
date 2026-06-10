@@ -16,6 +16,7 @@ export class StorageService {
   async upload(fileBuffer: Buffer, format: string): Promise<string> {
     const filename = `${uuidv4()}.${format}`;
 
+    // upload file to bucket
     const { data, error } = await this.supabase.storage
       .from(this.bucket)
       .upload(filename, fileBuffer, {
@@ -37,6 +38,7 @@ export class StorageService {
   }
 
   async delete(fileUrl: string): Promise<void> {
+    // extract file name 'test/jpg'
     const filename = fileUrl.split('/').pop();
 
     const { error } = await this.supabase.storage

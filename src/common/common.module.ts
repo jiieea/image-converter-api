@@ -15,6 +15,6 @@ import { StorageModule } from '../storage/storage.module';
       transports: [new winston.transports.Console()],
     }),
   ],
-  providers: [PrismaModule , StorageModule],
+  providers: [PrismaModule, StorageModule],
 })
 export class CommonModule {}
