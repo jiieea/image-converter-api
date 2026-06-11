@@ -13,6 +13,7 @@ export class StorageService {
     );
   }
 
+  // upload file to supabase bucket
   async upload(fileBuffer: Buffer, format: string): Promise<string> {
     const filename = `${uuidv4()}.${format}`;
 
@@ -20,7 +21,7 @@ export class StorageService {
     const { data, error } = await this.supabase.storage
       .from(this.bucket)
       .upload(filename, fileBuffer, {
-        contentType: this.getContentType(format),
+        contentType: this.getContentType(format), // get file type ex: jpg || png || pdf
         upsert: false,
       });
 
