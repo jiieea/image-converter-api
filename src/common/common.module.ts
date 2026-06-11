@@ -5,8 +5,11 @@ import * as winston from 'winston';
 import { PrismaModule } from '../prisma/prisma.module';
 import { StorageModule } from '../storage/storage.module';
 import { ConversionModule } from '../conversion/conversion.module';
+import { CleanupModule } from '../cleanup/cleanup.module';
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
+    ScheduleModule.forRoot({}),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -18,6 +21,7 @@ import { ConversionModule } from '../conversion/conversion.module';
     PrismaModule,
     StorageModule,
     ConversionModule,
+    CleanupModule,
   ],
 })
 export class CommonModule {}
