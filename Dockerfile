@@ -8,4 +8,4 @@ RUN npm run build
 RUN ls -la /app/
 RUN ls -la /app/dist/
 EXPOSE 3000
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]
