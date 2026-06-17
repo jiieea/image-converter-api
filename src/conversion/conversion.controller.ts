@@ -22,7 +22,7 @@ export class ConversionController {
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
-        fileSize: 5 * 1024 * 1024,
+        fileSize: 10 * 1024 * 1024,
       },
     }),
   )
@@ -34,7 +34,7 @@ export class ConversionController {
       throw new BadRequestException(`Must Upload a file`);
     }
 
-    const types = ['jpg', 'png', 'webp', 'jpeg' , 'pdf'];
+    const types = ['jpg', 'png', 'webp', 'jpeg', 'pdf'];
     if (!types.includes(format))
       throw new BadRequestException(`Invalid format ${format}`);
 
