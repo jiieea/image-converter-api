@@ -15,18 +15,20 @@ export class ConversionService {
     private readonly prismaService: PrismaService,
   ) {}
 
+  async merge(file: Express.Multer.File[]): Promise<void> {
+    const buffer = file.map((f) => f.buffer);
+    const pdfBuffer = await this.imageToPdf(buffer);
+
+    const uploadToStorage = await this.storageService.upload(pdfBuffer, 'pdf');
+  }
+
   async create(file: Express.Multer.File, toFormat: string): Promise<string> {
     //   extract mimetype
     const fromFormat = file.mimetype.split('/')[1];
 
-    let convertedBuffer: Buffer;
-    if (toFormat === 'pdf') {
-      convertedBuffer = await this.imageToPdf(file.buffer);
-    } else {
-      convertedBuffer = await this.imageToImage(file.buffer, toFormat);
-    }
+    const formatBuffer = await this.imageToImage(file.buffer, toFormat);
 
-    const fileUrl = await this.storageService.upload(convertedBuffer, toFormat);
+    const fileUrl = await this.storageService.upload(formatBuffer, toFormat);
 
     // 4. Log the conversion to database
     await this.prismaService.conversion.create({
@@ -70,18 +72,18 @@ export class ConversionService {
     }
   }
 
-  private async imageToPdf(fileBuffer: Buffer): Promise<Buffer> {
+  private async imageToPdf(fileBuffers: Buffer[]): Promise<Buffer> {
     // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
         //   take image dimension
-        const metadata = await sharp(fileBuffer).metadata();
-        const { width, height } = metadata;
+        const firstMetadata = await sharp(fileBuffers[0]).metadata();
 
         // create PDF
         const doc = new PDFDoc({
-          size: [width, height],
+          size: [firstMetadata.height!, firstMetadata.width!],
           margin: 0, // make the image fill the dimension
+          autoFirstPage: false,
         });
 
         const chunks: Buffer[] = [];
@@ -90,10 +92,12 @@ export class ConversionService {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', (err: Error) => reject(err));
 
-        doc.image(fileBuffer, 0, 0, {
-          width,
-          height,
-        });
+        for (const record of fileBuffers) {
+          const metadata = await sharp(record).metadata();
+          const { height, width } = metadata;
+          doc.addPage({ size: [width, height], margin: 0 });
+          doc.image(record, 0, 0, { width, height });
+        }
         doc.end();
       } catch (error: any) {
         if (error instanceof Error)
