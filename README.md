@@ -63,6 +63,7 @@ Clone the repository:
 ```bash
 git clone https://github.com/jiieea/image-converter-api.git
 cd image-converter-api
+```
 
 ## Support
 
