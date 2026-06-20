@@ -5,11 +5,11 @@ import {
   Post,
   Query,
   UploadedFile,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { ConversionService } from './conversion.service';
-import { FileInterceptor } from '@nestjs/platform-express';
-
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 @Controller('/convert')
 export class ConversionController {
   constructor(private readonly conversionService: ConversionService) {}
@@ -17,6 +17,34 @@ export class ConversionController {
   @Get('/hello')
   sayHello() {
     return 'Hello World!';
+  }
+
+  @Post('/pdf')
+  @UseInterceptors(
+    FilesInterceptor('files', 15, {
+      limits: {
+        fileSize: 50 * 1024 * 1024,
+      },
+    }),
+  )
+  async pdfConvert(@UploadedFiles() files: Express.Multer.File[]) {
+    if (!files || files.length === 0) {
+      throw new BadRequestException(`Files must be uploaded`);
+    }
+    if (files.length < 2) {
+      throw new BadRequestException(`Files must be at least 2 `);
+    }
+    for (const file of files) {
+      if (!file.mimetype.startsWith('image/')) {
+        throw new BadRequestException(`Files must be an Image`);
+      }
+    }
+
+    const url = await this.conversionService.merge(files);
+    return {
+      url,
+      format: 'pdf',
+    };
   }
   @Post()
   @UseInterceptors(
@@ -34,7 +62,7 @@ export class ConversionController {
       throw new BadRequestException(`Must Upload a file`);
     }
 
-    const types = ['jpg', 'png', 'webp', 'jpeg' , 'pdf'];
+    const types = ['jpg', 'png', 'webp', 'jpeg', 'pdf'];
     if (!types.includes(format))
       throw new BadRequestException(`Invalid format ${format}`);
 

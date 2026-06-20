@@ -15,21 +15,31 @@ export class ConversionService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  async merge(file: Express.Multer.File[]): Promise<void> {
+  async merge(file: Express.Multer.File[]): Promise<string> {
     const buffer = file.map((f) => f.buffer);
     const pdfBuffer = await this.imageToPdf(buffer);
 
-    const uploadToStorage = await this.storageService.upload(pdfBuffer, 'pdf');
+    const fileUrl = await this.storageService.upload(pdfBuffer, 'pdf');
+
+    await this.prismaService.conversion.create({
+      data: {
+        originalName: `merged_pdf_${pdfBuffer.length}.pdf`,
+        originalSize: buffer.reduce((acc, b) => acc + b.length, 0),
+        fileUrl,
+        fromFormat: 'Multiple',
+        toFormat: 'pdf',
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      },
+    });
+
+    return fileUrl;
   }
 
   async create(file: Express.Multer.File, toFormat: string): Promise<string> {
     //   extract mimetype
     const fromFormat = file.mimetype.split('/')[1];
-
     const formatBuffer = await this.imageToImage(file.buffer, toFormat);
-
     const fileUrl = await this.storageService.upload(formatBuffer, toFormat);
-
     // 4. Log the conversion to database
     await this.prismaService.conversion.create({
       data: {
