@@ -44,6 +44,24 @@ export class ConversionService {
     return fileUrl;
   }
 
+  async merge(files: Express.Multer.File[]): Promise<string> {
+    const buffers = files.map((file: Express.Multer.File) => file.buffer);
+    const pdfBuffer = await this.imagesToPdf(buffers);
+
+    const upload = await this.storageService.upload(pdfBuffer, 'pdf');
+
+    await this.prismaService.conversion.create({
+      data: {
+        originalName: `Merged-${pdfBuffer.length}-files.pdf`,
+        originalSize: buffers.reduce((acc, b) => acc + b.length, 0),
+        fromFormat: 'Multiple',
+        toFormat: 'pdf',
+        fileUrl: upload,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      },
+    });
+    return upload;
+  }
   private async imageToImage(
     fileBuffer: Buffer,
     format: string,
@@ -68,6 +86,44 @@ export class ConversionService {
           `Failed to convert image ${error.message}`,
         );
     }
+  }
+
+  private async imagesToPdf(buffers: Buffer[]): Promise<Buffer> {
+    // eslint-disable-next-line no-async-promise-executor
+    return new Promise(async (resolve, reject) => {
+      try {
+        const firstMetadata = await sharp(buffers[0]).metadata();
+        const doc = new PDFDoc({
+          size: [firstMetadata.height!, firstMetadata.width!],
+          autoFirstPage: false,
+          margin: 0,
+        });
+        const chunks: Buffer[] = [];
+        doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
+        doc.on('error', reject);
+
+        for (const buffer of buffers) {
+          const { width, height } = await sharp(buffer).metadata();
+          doc.addPage({
+            size: [width, height],
+            margin: 0,
+          });
+
+          doc.image(buffer, 0, 0, {
+            width,
+            height,
+          });
+          doc.end();
+        }
+      } catch (error) {
+        reject(
+          new InternalServerErrorException(
+            `Failed to convert image ${error.message}`,
+          ),
+        );
+      }
+    });
   }
 
   private async imageToPdf(fileBuffer: Buffer): Promise<Buffer> {

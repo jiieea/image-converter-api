@@ -6,14 +6,44 @@ import {
   Query,
   UploadedFile,
   UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ConversionService } from './conversion.service';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('/convert')
 export class ConversionController {
   constructor(private readonly conversionService: ConversionService) {}
 
+  @Post('/pdf')
+  @UseInterceptors(
+    FilesInterceptor('files', 15, {
+      limits: {
+        fileSize: 30 * 1024 * 1024,
+      },
+    }),
+  )
+  async conversionPdf(@UploadedFiles() files: Express.Multer.File[]) {
+    if (!files) {
+      throw new BadRequestException(`NO Files uploaded`);
+    }
+
+    if (files.length < 2) {
+      throw new BadRequestException(`2 files minimum`);
+    }
+
+    for (const file of files) {
+      if (!file.mimetype.startsWith('image/')) {
+        throw new BadRequestException('File must image');
+      }
+    }
+
+    const url = await this.conversionService.merge(files);
+    return {
+      url,
+      format: 'pdf',
+    };
+  }
   @Get('/hello')
   sayHello() {
     return 'Hello World!';
