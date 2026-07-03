@@ -52,7 +52,7 @@ export class ConversionService {
 
     await this.prismaService.conversion.create({
       data: {
-        originalName: `Merged-${pdfBuffer.length}-files.pdf`,
+        originalName: `Merged-${files.length}-files.pdf`,
         originalSize: buffers.reduce((acc, b) => acc + b.length, 0),
         fromFormat: 'Multiple',
         toFormat: 'pdf',
@@ -94,7 +94,7 @@ export class ConversionService {
       try {
         const firstMetadata = await sharp(buffers[0]).metadata();
         const doc = new PDFDoc({
-          size: [firstMetadata.height!, firstMetadata.width!],
+          size: [firstMetadata.width!, firstMetadata.height!],
           autoFirstPage: false,
           margin: 0,
         });
@@ -104,18 +104,28 @@ export class ConversionService {
         doc.on('error', reject);
 
         for (const buffer of buffers) {
-          const { width, height } = await sharp(buffer).metadata();
+          const jpegBuffer = await sharp(buffer)
+            .flatten({
+              background: { r: 255, g: 255, b: 255 },
+            })
+            .jpeg({ quality: 95 })
+            .toBuffer();
+          const { width, height } = await sharp(jpegBuffer).metadata();
+
+          const PX_TO_PT = 72/96;
+          const pageWidth = width * PX_TO_PT;
+          const pageHeight = height * PX_TO_PT;
           doc.addPage({
-            size: [width, height],
+            size: [pageWidth, pageHeight],
             margin: 0,
           });
 
-          doc.image(buffer, 0, 0, {
-            width,
-            height,
+          doc.image(jpegBuffer, 0, 0, {
+            width: pageWidth,
+            height: pageHeight,
           });
-          doc.end();
         }
+        doc.end();
       } catch (error) {
         reject(
           new InternalServerErrorException(
