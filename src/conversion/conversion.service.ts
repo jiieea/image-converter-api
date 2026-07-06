@@ -47,6 +47,15 @@ export class ConversionService {
   async merge(files: Express.Multer.File[]): Promise<string> {
     const buffers = files.map((file: Express.Multer.File) => file.buffer);
     const pdfBuffer = await this.imagesToPdf(buffers);
+    console.log(
+      'files received:',
+      files.map((f) => ({
+        name: f.originalname,
+        mimetype: f.mimetype,
+        size: f.size,
+        bufferLength: f.buffer?.length, // ← if this is 0 or undefined, buffer is empty!
+      })),
+    );
 
     const upload = await this.storageService.upload(pdfBuffer, 'pdf');
 
@@ -92,11 +101,9 @@ export class ConversionService {
     // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
-        const firstMetadata = await sharp(buffers[0]).metadata();
         const doc = new PDFDoc({
-          size: [firstMetadata.width!, firstMetadata.height!],
           autoFirstPage: false,
-          margin: 0,
+          margin: 1,
         });
         const chunks: Buffer[] = [];
         doc.on('data', (chunk: Buffer) => chunks.push(chunk));
@@ -108,21 +115,25 @@ export class ConversionService {
             .flatten({
               background: { r: 255, g: 255, b: 255 },
             })
+            .toColorspace('srgb')
             .jpeg({ quality: 95 })
             .toBuffer();
-          const { width, height } = await sharp(jpegBuffer).metadata();
 
-          const PX_TO_PT = 72/96;
-          const pageWidth = width * PX_TO_PT;
-          const pageHeight = height * PX_TO_PT;
+          const metadata = await sharp(jpegBuffer).metadata();
+          console.log({
+            format: metadata.format,
+            channels: metadata.channels,
+            space: metadata.space,
+          });
           doc.addPage({
-            size: [pageWidth, pageHeight],
+            size: [metadata.width, metadata.height],
             margin: 0,
           });
 
           doc.image(jpegBuffer, 0, 0, {
-            width: pageWidth,
-            height: pageHeight,
+            fit: [metadata.width, metadata.height],
+            align: 'center',
+            valign: 'center',
           });
         }
         doc.end();
@@ -142,6 +153,7 @@ export class ConversionService {
       try {
         //   take image dimension
         const metadata = await sharp(fileBuffer).metadata();
+        console.log(metadata);
         const { width, height } = metadata;
 
         // create PDF
