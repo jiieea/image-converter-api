@@ -5,8 +5,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as sharp from 'sharp';
-import * as PDFDoc from 'pdfkit';
 import { StorageService } from '../storage/storage.service';
+import { PDFDocument } from 'pdf-lib';
 
 @Injectable()
 export class ConversionService {
@@ -46,19 +46,8 @@ export class ConversionService {
 
   async merge(files: Express.Multer.File[]): Promise<string> {
     const buffers = files.map((file: Express.Multer.File) => file.buffer);
-    const pdfBuffer = await this.imagesToPdf(buffers);
-    console.log(
-      'files received:',
-      files.map((f) => ({
-        name: f.originalname,
-        mimetype: f.mimetype,
-        size: f.size,
-        bufferLength: f.buffer?.length, // ← if this is 0 or undefined, buffer is empty!
-      })),
-    );
-
+    const pdfBuffer = await this.multiplePages(buffers);
     const upload = await this.storageService.upload(pdfBuffer, 'pdf');
-
     await this.prismaService.conversion.create({
       data: {
         originalName: `Merged-${files.length}-files.pdf`,
@@ -97,90 +86,66 @@ export class ConversionService {
     }
   }
 
-  private async imagesToPdf(buffers: Buffer[]): Promise<Buffer> {
-    // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
-      try {
-        const doc = new PDFDoc({
-          autoFirstPage: false,
-          margin: 1,
-        });
-        const chunks: Buffer[] = [];
-        doc.on('data', (chunk: Buffer) => chunks.push(chunk));
-        doc.on('end', () => resolve(Buffer.concat(chunks)));
-        doc.on('error', reject);
-
-        for (const buffer of buffers) {
-          const jpegBuffer = await sharp(buffer)
-            .flatten({
-              background: { r: 255, g: 255, b: 255 },
-            })
-            .toColorspace('srgb')
-            .jpeg({ quality: 95 })
-            .toBuffer();
-
-          const metadata = await sharp(jpegBuffer).metadata();
-          console.log({
-            format: metadata.format,
-            channels: metadata.channels,
-            space: metadata.space,
-          });
-          doc.addPage({
-            size: [metadata.width, metadata.height],
-            margin: 0,
-          });
-
-          doc.image(jpegBuffer, 0, 0, {
-            fit: [metadata.width, metadata.height],
-            align: 'center',
-            valign: 'center',
-          });
-        }
-        doc.end();
-      } catch (error) {
-        reject(
-          new InternalServerErrorException(
-            `Failed to convert image ${error.message}`,
-          ),
-        );
-      }
-    });
-  }
 
   private async imageToPdf(fileBuffer: Buffer): Promise<Buffer> {
-    // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
-      try {
-        //   take image dimension
-        const metadata = await sharp(fileBuffer).metadata();
-        console.log(metadata);
-        const { width, height } = metadata;
+    try {
+      // convert to JPEG first
+      const jpegBuffer = await sharp(fileBuffer)
+        .flatten({ background: { r: 255, g: 255, b: 255 } })
+        .toColorspace('srgb')
+        .jpeg({ quality: 95 })
+        .toBuffer();
 
-        // create PDF
-        const doc = new PDFDoc({
-          size: [width, height],
-          margin: 0, // make the image fill the dimension
+      const { width, height } = await sharp(jpegBuffer).metadata();
+
+      // create PDF with pdf-lib
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([width!, height!]);
+
+      // embed JPEG directly — pdf-lib handles color correctly
+      const jpegImage = await pdfDoc.embedJpg(jpegBuffer);
+
+      page.drawImage(jpegImage, {
+        x: 0,
+        y: 0,
+        width: width!,
+        height: height!,
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      return Buffer.from(pdfBytes);
+    } catch (error: any) {
+      throw new InternalServerErrorException(
+        `Failed to convert image: ${error.message}`,
+      );
+    }
+  }
+
+  private async multiplePages(fileBuffers: Buffer[]): Promise<Buffer> {
+    try {
+      const pdfDoc = await PDFDocument.create();
+      for (const buffer of fileBuffers) {
+        //   convert to jpeg
+        const jpegBuffer = await sharp(buffer)
+          .flatten({ background: { r: 255, g: 255, b: 255 } })
+          .jpeg({ quality: 95 })
+          .toBuffer();
+        const { width, height } = await sharp(jpegBuffer).metadata();
+        const page = pdfDoc.addPage([width!, height!]);
+        const embedPage = await pdfDoc.embedJpg(jpegBuffer);
+        page.drawImage(embedPage, {
+          x: 0,
+          y: 0,
+          width: width!,
+          height: height!,
         });
-
-        const chunks: Buffer[] = [];
-
-        doc.on('data', (chunk) => chunks.push(chunk));
-        doc.on('end', () => resolve(Buffer.concat(chunks)));
-        doc.on('error', (err: Error) => reject(err));
-
-        doc.image(fileBuffer, 0, 0, {
-          width,
-          height,
-        });
-        doc.end();
-      } catch (error: any) {
-        if (error instanceof Error)
-          reject(
-            new InternalServerErrorException(
-              `Failed to convert image ${error.message}`,
-            ),
-          );
       }
-    });
+      const result = await pdfDoc.save();
+      return Buffer.from(result);
+    } catch (error: any) {
+      throw new InternalServerErrorException(
+        `Failed to convert image: ${error.message}`,
+      );
+    }
   }
 }
