@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Conversion: 'Conversion',
+  Compression: 'Compression',
   User: 'User'
 } as const
 
@@ -83,6 +84,19 @@ export const ConversionScalarFieldEnum = {
 } as const
 
 export type ConversionScalarFieldEnum = (typeof ConversionScalarFieldEnum)[keyof typeof ConversionScalarFieldEnum]
+
+
+export const CompressionScalarFieldEnum = {
+  id: 'id',
+  fileName: 'fileName',
+  fileSize: 'fileSize',
+  format: 'format',
+  fileUrl: 'fileUrl',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type CompressionScalarFieldEnum = (typeof CompressionScalarFieldEnum)[keyof typeof CompressionScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {

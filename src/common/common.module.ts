@@ -7,6 +7,7 @@ import { StorageModule } from '../storage/storage.module';
 import { ConversionModule } from '../conversion/conversion.module';
 import { CleanupModule } from '../cleanup/cleanup.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CompressionModule } from '../compression/compression.module';
 @Module({
   imports: [
     ScheduleModule.forRoot({}),
@@ -22,6 +23,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     StorageModule,
     ConversionModule,
     CleanupModule,
+    CompressionModule,
   ],
 })
 export class CommonModule {}
