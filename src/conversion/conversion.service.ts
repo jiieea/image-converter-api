@@ -123,7 +123,7 @@ export class ConversionService {
 
   private async multiplePages(fileBuffers: Buffer[]): Promise<Buffer> {
     try {
-      const pdfDoc = await PDFDocument.create();
+      const pdfDoc = await PDFDocument.create();// intialize pdf-lib
       for (const buffer of fileBuffers) {
         //   convert to jpeg
         const jpegBuffer = await sharp(buffer)

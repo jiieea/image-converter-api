@@ -14,7 +14,7 @@ export class StorageService {
   }
 
   // upload file to supabase bucket
-  async upload(fileBuffer: Buffer, format: string): Promise<string> {
+  async upload(fileBuffer: Buffer, format?: string): Promise<string> {
     const filename = `${uuidv4()}.${format}`;
 
     // upload file to bucket
