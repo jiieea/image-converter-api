@@ -14,10 +14,7 @@ export class CompressionService {
   async create(file: Express.Multer.File): Promise<string> {
     const imageBuffer = await this.transform(file.buffer);
     this.logger.info(`Compression image: ${imageBuffer.length} bytes`);
-    const fileUrl = await this.storageService.upload(
-      imageBuffer,
-      'png',
-    );
+    const fileUrl = await this.storageService.upload(imageBuffer, 'png');
 
     await this.prismaService.compression.create({
       data: {
@@ -36,8 +33,8 @@ export class CompressionService {
 
     try {
       const compressed = await sharp(fileBuffer)
-        .resize({ width: 1080, withoutEnlargement: true, fit: sharp.fit.fill })
-        .toFormat('png')
+        .resize({ width: 1080, withoutEnlargement: true, fit: sharp.fit.cover })
+        .toFormat('png', { quality: 80 })
         .toBuffer();
 
       return compressed;

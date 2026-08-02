@@ -35,7 +35,12 @@ export class CompressionController {
     }
     try {
       this.logger.info(`Raw image ${file.size}`);
-      return this.compressionService.create(file);
+      const compressed = await this.compressionService.create(file);
+
+      return {
+        fileUrl: compressed,
+        message: 'Compression success',
+      };
     } catch (e: any) {
       throw new HttpException(
         `Compression Failed ${e.message}`,

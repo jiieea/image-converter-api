@@ -37,4 +37,5 @@ model Compression {
 model User {
   id       Int    @id @default(autoincrement())
   username String
+  age      Int
 }
