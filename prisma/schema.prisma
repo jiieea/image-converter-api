@@ -24,7 +24,18 @@ model Conversion {
   expiresAt    DateTime // createdAt + 1 hour
 }
 
+model Compression {
+  id        String   @id @default(uuid())
+  fileName  String
+  fileSize  Int
+  format    String
+  fileUrl   String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
 model User {
   id       Int    @id @default(autoincrement())
   username String
+  age      Int
 }

@@ -45,6 +45,11 @@ export { Prisma }
  */
 export type Conversion = Prisma.ConversionModel
 /**
+ * Model Compression
+ * 
+ */
+export type Compression = Prisma.CompressionModel
+/**
  * Model User
  * 
  */

@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Conversion: 'Conversion',
+  Compression: 'Compression',
   User: 'User'
 } as const
 
@@ -401,7 +402,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "conversion" | "user"
+    modelProps: "conversion" | "compression" | "user"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -476,6 +477,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ConversionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ConversionCountAggregateOutputType> | number
+        }
+      }
+    }
+    Compression: {
+      payload: Prisma.$CompressionPayload<ExtArgs>
+      fields: Prisma.CompressionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CompressionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompressionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CompressionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompressionPayload>
+        }
+        findFirst: {
+          args: Prisma.CompressionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompressionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CompressionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompressionPayload>
+        }
+        findMany: {
+          args: Prisma.CompressionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompressionPayload>[]
+        }
+        create: {
+          args: Prisma.CompressionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompressionPayload>
+        }
+        createMany: {
+          args: Prisma.CompressionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CompressionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompressionPayload>[]
+        }
+        delete: {
+          args: Prisma.CompressionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompressionPayload>
+        }
+        update: {
+          args: Prisma.CompressionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompressionPayload>
+        }
+        deleteMany: {
+          args: Prisma.CompressionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CompressionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CompressionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompressionPayload>[]
+        }
+        upsert: {
+          args: Prisma.CompressionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompressionPayload>
+        }
+        aggregate: {
+          args: Prisma.CompressionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCompression>
+        }
+        groupBy: {
+          args: Prisma.CompressionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CompressionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CompressionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CompressionCountAggregateOutputType> | number
         }
       }
     }
@@ -604,6 +679,19 @@ export const ConversionScalarFieldEnum = {
 } as const
 
 export type ConversionScalarFieldEnum = (typeof ConversionScalarFieldEnum)[keyof typeof ConversionScalarFieldEnum]
+
+
+export const CompressionScalarFieldEnum = {
+  id: 'id',
+  fileName: 'fileName',
+  fileSize: 'fileSize',
+  format: 'format',
+  fileUrl: 'fileUrl',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type CompressionScalarFieldEnum = (typeof CompressionScalarFieldEnum)[keyof typeof CompressionScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {
@@ -802,6 +890,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   conversion?: Prisma.ConversionOmit
+  compression?: Prisma.CompressionOmit
   user?: Prisma.UserOmit
 }
 

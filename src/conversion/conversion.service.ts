@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 import { StorageService } from '../storage/storage.service';
 import { PDFDocument } from 'pdf-lib';
 
@@ -26,7 +26,10 @@ export class ConversionService {
       convertedBuffer = await this.imageToImage(file.buffer, toFormat);
     }
 
-    const fileUrl = await this.storageService.upload(convertedBuffer, toFormat);
+    const fileUrl = await this.storageService.upload(
+      convertedBuffer,
+      toFormat,
+    );
 
     // 4. Log the conversion to database
     await this.prismaService.conversion.create({
@@ -61,7 +64,7 @@ export class ConversionService {
     return upload;
   }
   private async imageToImage(
-    fileBuffer: Buffer,
+    fileBuffer: Buffer, // image buffer
     format: string,
   ): Promise<Buffer> {
     try {
@@ -85,7 +88,6 @@ export class ConversionService {
         );
     }
   }
-
 
   private async imageToPdf(fileBuffer: Buffer): Promise<Buffer> {
     try {
@@ -123,7 +125,7 @@ export class ConversionService {
 
   private async multiplePages(fileBuffers: Buffer[]): Promise<Buffer> {
     try {
-      const pdfDoc = await PDFDocument.create();
+      const pdfDoc = await PDFDocument.create(); // intialize pdf-lib
       for (const buffer of fileBuffers) {
         //   convert to jpeg
         const jpegBuffer = await sharp(buffer)

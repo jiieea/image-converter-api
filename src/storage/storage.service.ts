@@ -5,7 +5,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 @Injectable()
 export class StorageService {
   private supabase: SupabaseClient;
-  private bucket = 'conversions';
+  private bucket = 'images';
   constructor() {
     this.supabase = createClient(
       process.env.SUPABASE_URL,
@@ -14,7 +14,7 @@ export class StorageService {
   }
 
   // upload file to supabase bucket
-  async upload(fileBuffer: Buffer, format: string): Promise<string> {
+  async upload(fileBuffer: Buffer, format?: string): Promise<string> {
     const filename = `${uuidv4()}.${format}`;
 
     // upload file to bucket
