@@ -15,23 +15,20 @@ export class ConversionService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  async create(file: Express.Multer.File, toFormat: string): Promise<string> {
-    //   extract mimetype
+  private async convertAndStore(
+    file: Express.Multer.File,
+    toFormat: string,
+  ): Promise<{
+    fileUrl: string;
+  }> {
     const fromFormat = file.mimetype.split('/')[1];
+    let convertBuffer: Buffer;
+    toFormat === 'pdf'
+      ? (convertBuffer = await this.imageToPdf(file.buffer))
+      : (convertBuffer = await this.imageToImage(file.buffer, toFormat));
 
-    let convertedBuffer: Buffer;
-    if (toFormat === 'pdf') {
-      convertedBuffer = await this.imageToPdf(file.buffer);
-    } else {
-      convertedBuffer = await this.imageToImage(file.buffer, toFormat);
-    }
+    const fileUrl = await this.storageService.upload(convertBuffer, fromFormat);
 
-    const fileUrl = await this.storageService.upload(
-      convertedBuffer,
-      toFormat,
-    );
-
-    // 4. Log the conversion to database
     await this.prismaService.conversion.create({
       data: {
         originalName: file.originalname,
@@ -43,7 +40,12 @@ export class ConversionService {
       },
     });
 
-    // 5. Return the download URL
+    return {
+      fileUrl,
+    };
+  }
+  async create(file: Express.Multer.File, toFormat: string): Promise<string> {
+    const { fileUrl } = await this.convertAndStore(file, toFormat);
     return fileUrl;
   }
 
@@ -92,11 +94,7 @@ export class ConversionService {
   private async imageToPdf(fileBuffer: Buffer): Promise<Buffer> {
     try {
       // convert to JPEG first
-      const jpegBuffer = await sharp(fileBuffer)
-        .flatten({ background: { r: 255, g: 255, b: 255 } })
-        .toColorspace('srgb')
-        .jpeg({ quality: 95 })
-        .toBuffer();
+      const jpegBuffer = await this.jpegTransform(fileBuffer);
 
       const { width, height } = await sharp(jpegBuffer).metadata();
 
@@ -128,10 +126,7 @@ export class ConversionService {
       const pdfDoc = await PDFDocument.create(); // intialize pdf-lib
       for (const buffer of fileBuffers) {
         //   convert to jpeg
-        const jpegBuffer = await sharp(buffer)
-          .flatten({ background: { r: 255, g: 255, b: 255 } })
-          .jpeg({ quality: 95 })
-          .toBuffer();
+        const jpegBuffer = await this.jpegTransform(buffer);
         const { width, height } = await sharp(jpegBuffer).metadata();
         const page = pdfDoc.addPage([width!, height!]);
         const embedPage = await pdfDoc.embedJpg(jpegBuffer);
@@ -149,5 +144,12 @@ export class ConversionService {
         `Failed to convert image: ${error.message}`,
       );
     }
+  }
+
+  private async jpegTransform(fileBuffer: Buffer): Promise<any> {
+    return sharp(fileBuffer)
+      .flatten({ background: { r: 255, g: 255, b: 255 } })
+      .jpeg({ quality: 95 })
+      .toBuffer();
   }
 }

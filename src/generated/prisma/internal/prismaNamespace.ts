@@ -696,7 +696,8 @@ export type CompressionScalarFieldEnum = (typeof CompressionScalarFieldEnum)[key
 
 export const UserScalarFieldEnum = {
   id: 'id',
-  username: 'username'
+  username: 'username',
+  age: 'age'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
