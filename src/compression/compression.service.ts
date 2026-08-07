@@ -47,9 +47,7 @@ export class CompressionService {
     });
 
     const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
-    const zipUrl = await this.storageService.upload(zipBuffer, 'zip');
-
-    return zipUrl;
+    return this.storageService.upload(zipBuffer, 'zip');
   }
 
   private async compressAndStore(file: Express.Multer.File): Promise<{
