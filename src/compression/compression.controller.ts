@@ -1,5 +1,4 @@
 import {
-  Body,
   Controller,
   HttpCode,
   HttpException,
@@ -7,10 +6,11 @@ import {
   Inject,
   Post,
   UploadedFile,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { CompressionService } from './compression.service';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 @Controller('/compression')
@@ -20,6 +20,22 @@ export class CompressionController {
     @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
   ) {}
 
+  @Post('/multi-file')
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(
+    FilesInterceptor('images', 20, {
+      limits: {
+        fileSize: 50 * 1024 * 1024,
+      },
+    }),
+  )
+  async multiCompress(@UploadedFiles() files: Express.Multer.File[]) {
+    const url = await this.compressionService.multiCompress(files, 5);
+    return {
+      url,
+      message: 'Compression complete',
+    };
+  }
   @Post()
   @HttpCode(200)
   @UseInterceptors(
