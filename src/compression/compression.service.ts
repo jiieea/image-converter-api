@@ -13,39 +13,44 @@ export class CompressionService {
     private storageService: StorageService,
   ) {}
 
-  async multiFileCompress(files: Express.Multer.File[]): Promise<string> {
+  async multiCompress(
+    files: Express.Multer.File[],
+    concurrency: 5,
+  ): Promise<string> {
     const zip = new JSZip();
+    const errors: { name: string; error: string }[] = [];
+    let succeedFile: number = 0;
 
-    // call compressAndStore
-    const results = await Promise.allSettled(
-      files.map((file) => this.compressAndStore(file)),
-    );
+    for (let i = 0; i < files.length; i += concurrency) {
+      const batch = files.splice(i, 1 + concurrency);
+      const result = await Promise.allSettled(
+        files.map((file) => this.compressAndStore(file)),
+      );
+      result.forEach((response, i) => {
+        if (response.status === 'fulfilled') {
+          const { fileBuffer, filename } = response.value;
+          const basename = filename.replace(/\.[^/.]+$/, '');
+          zip.file(`${basename}.png`, fileBuffer);
+          succeedFile++;
+        } else {
+          errors.push({
+            name: batch[i].filename,
+            error: response.reason.message,
+          });
+          this.logger.error(
+            `Failed to compress for ${response[i].originalname} , ${response.reason.message}`,
+          );
+        }
+        if (errors.length > 0)
+          this.logger.error(
+            `${errors.length}/${files.length} failed to compress`,
+          );
 
-    const errors: string[] = [];
-    let successCount = 0;
-
-    results.forEach((res, i) => {
-      if (res.status === 'fulfilled') {
-        const { fileBuffer, filename } = res.value;
-        const baseName = filename.replace(/\.[^/.]+$/, '');
-        zip.file(`${baseName}.png`, fileBuffer);
-        successCount++;
-      } else {
-        errors.push(`Image ${res[i].originalname} = ${res.reason.message}`);
-        this.logger.error(
-          `Failed to compress for ${res[i].originalname} , ${res.reason.message}`,
-        );
-      }
-      if (errors.length > 0)
-        this.logger.error(
-          `${errors.length}/${files.length} failed to compress`,
-        );
-
-      if (successCount === 0) {
-        throw new Error(`No File Compress Successfully`);
-      }
-    });
-
+        if (succeedFile === 0) {
+          throw new Error(`No File Compress Successfully`);
+        }
+      });
+    }
     const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
     return this.storageService.upload(zipBuffer, 'zip');
   }
@@ -83,7 +88,6 @@ export class CompressionService {
 
   private async transform(fileBuffer: Buffer): Promise<Buffer> {
     if (!fileBuffer) return;
-
     try {
       return sharp(fileBuffer)
         .resize({ width: 1080, withoutEnlargement: true, fit: sharp.fit.cover })

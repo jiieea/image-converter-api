@@ -23,14 +23,14 @@ export class CompressionController {
   @Post('/multi-file')
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(
-    FilesInterceptor('images', 5, {
+    FilesInterceptor('images', 20, {
       limits: {
         fileSize: 50 * 1024 * 1024,
       },
     }),
   )
   async multiCompress(@UploadedFiles() files: Express.Multer.File[]) {
-    const url = await this.compressionService.multiFileCompress(files);
+    const url = await this.compressionService.multiCompress(files, 5);
     return {
       url,
       message: 'Compression complete',
