@@ -8,6 +8,7 @@ import { ConversionModule } from '../conversion/conversion.module';
 import { CleanupModule } from '../cleanup/cleanup.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CompressionModule } from '../compression/compression.module';
+import { AuthModule } from '../auth/auth.module';
 @Module({
   imports: [
     ScheduleModule.forRoot({}),
@@ -21,6 +22,7 @@ import { CompressionModule } from '../compression/compression.module';
     }),
     PrismaModule,
     StorageModule,
+    AuthModule,
     ConversionModule,
     CleanupModule,
     CompressionModule,
