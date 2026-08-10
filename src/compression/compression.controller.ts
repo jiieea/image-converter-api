@@ -3,6 +3,7 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
+  Get,
   Inject,
   Post,
   UploadedFile,
@@ -12,13 +13,28 @@ import {
 import { CompressionService } from './compression.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import { Logger } from 'winston';
+
+const execAsync = promisify(exec);
+
 @Controller('/compression')
 export class CompressionController {
   constructor(
     private readonly compressionService: CompressionService,
     @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
   ) {}
+
+  @Get('/libreoffice')
+  async checkLibreOffice() {
+    try {
+      const { stdout } = await execAsync('soffice --version');
+      return { installed: true, version: stdout.trim() };
+    } catch (e: any) {
+      return { installed: false, error: e.message };
+    }
+  }
 
   @Post('/multi-file')
   @HttpCode(HttpStatus.CREATED)
@@ -63,5 +79,11 @@ export class CompressionController {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+  @Post('/word')
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FileInterceptor('file'))
+  word(@UploadedFile() file: Express.Multer.File) {
+    return this.compressionService.wordConvert(file);
   }
 }
