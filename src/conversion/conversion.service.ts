@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import sharp from 'sharp';
 import { StorageService } from '../storage/storage.service';
 import { PDFDocument } from 'pdf-lib';
-
+// import * as libre from 'libreoffice-convert';
 @Injectable()
 export class ConversionService {
   constructor(

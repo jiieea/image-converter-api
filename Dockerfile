@@ -1,4 +1,9 @@
 FROM node:22-alpine
+RUN apt-get update && apt.get install -y \
+    libreoffice-writer \
+    libreoffice-core \
+    --no-install-recommends \
+     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package*.json ./
 RUN npm install

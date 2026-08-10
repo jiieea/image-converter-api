@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import sharp from 'sharp';
 import JSZip from 'jszip';
+import docxConverter from 'docx-pdf';
 @Injectable()
 export class CompressionService {
   constructor(
@@ -96,5 +97,15 @@ export class CompressionService {
     } catch (e: any) {
       throw new Error(`Could not transform file ${e.message}`);
     }
+  }
+
+  wordConvert(file: Express.Multer.File) {
+    docxConverter(file.buffer, 'output.pdf', function (err, result) {
+      if (err) {
+        console.log(err);
+        return err;
+      }
+      return `result = ${result.toString()}`;
+    });
   }
 }
