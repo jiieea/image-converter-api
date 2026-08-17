@@ -35,7 +35,8 @@ model Compression {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   username String
-  age      Int
+  password String
+  token    String?
 }
