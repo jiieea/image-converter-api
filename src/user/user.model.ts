@@ -1,14 +1,14 @@
 export class UserRegisterRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
 export class UserLoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
 export class UserResponse {
-  username: string;
+  email: string;
   token?: string;
 }

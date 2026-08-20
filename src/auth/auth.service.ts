@@ -10,49 +10,80 @@ import {
 import { ValidationService } from '../validation/validation.service';
 import { UserValidation } from '../user/user.validation';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prismaService: PrismaService,
+    private jwtService: JwtService,
     private validationService: ValidationService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
-
   //   authorization logics
-
   async create(request: UserRegisterRequest): Promise<UserResponse> {
-    const registerReq = this.validationService.validation(
+    this.logger.info('Creating user register');
+    const registerReq = this.validationService.validate(
       UserValidation.REGISTER,
       request,
     );
+    this.logger.info(`Data sent = ${registerReq.email}`);
+    const existUser = await this.prismaService.user.count({
+      where: { email: registerReq.email },
+    });
+    if (existUser != 0) {
+      throw new HttpException(`Email already used`, HttpStatus.BAD_REQUEST);
+    }
+    this.logger.info(`sent data : ${registerReq.email}`);
     const saltRound = 10;
     registerReq.password = await bcrypt.hash(registerReq.password, saltRound);
     const user = await this.prismaService.user.create({
       data: {
-        username: registerReq.username,
+        email: registerReq.email,
         password: registerReq.password,
       },
     });
 
     return {
-      username: user.username,
+      email: user.email,
+    };
+  }
+
+  private async validateEmail(email: string, password: string) {
+    const user = await this.prismaService.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new HttpException(`Invalid Credentials`, HttpStatus.NOT_FOUND);
+    }
+    const comparePassword = await bcrypt.compare(password, user.password);
+    if (!comparePassword) {
+      throw new HttpException(` Wrong Password`, HttpStatus.BAD_REQUEST);
+    }
+    return {
+      ...user,
     };
   }
 
   async login(request: UserLoginRequest): Promise<UserResponse> {
-    const userReq = this.validationService.validation(
+    this.logger.info('User Login');
+    const loginReq = this.validationService.validate(
       UserValidation.LOGIN,
       request,
     );
-    const existingUser = await this.prismaService.user.count({
+    const user = await this.validateEmail(loginReq.email, loginReq.password);
+    this.logger.info(`Credential: ${JSON.stringify(loginReq)}`);
+    const payload = { sub: user.email, email: user.email };
+    const token = await this.jwtService.signAsync(payload);
+    await this.prismaService.user.update({
       where: {
-        username: request.username,
+        email: loginReq.email,
+      },
+      data: {
+        token: token,
       },
     });
-
-    if (existingUser != 0) {
-      throw new HttpException('Username already exists', HttpStatus.NOT_FOUND);
-    }
+    return {
+      email: user.email,
+      token,
+    };
   }
 }
