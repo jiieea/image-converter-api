@@ -6,12 +6,15 @@ import {
   Post,
   UseFilters,
   Inject,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserLoginRequest, UserRegisterRequest } from '../user/user.model';
 import { AuthFilter } from './auth.filter';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { JwtAuthGuard } from './auth.guard';
+import { User } from '../user/user.decorator';
 
 @UseFilters(AuthFilter)
 @Controller('/auth')
@@ -40,6 +43,17 @@ export class AuthController {
     return {
       user,
       message: 'Login Successfully',
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@User('email') email: string) {
+    const user = await this.authService.logout(email);
+    return {
+      user,
+      message: 'Logout Successfully',
     };
   }
 }

@@ -11,6 +11,7 @@ import { ValidationService } from '../validation/validation.service';
 import { UserValidation } from '../user/user.validation';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { email } from 'zod';
 
 @Injectable()
 export class AuthService {
@@ -84,6 +85,27 @@ export class AuthService {
     return {
       email: user.email,
       token,
+    };
+  }
+
+  async logout(email: string): Promise<UserResponse> {
+    this.logger.info('User Logout');
+    const user = await this.prismaService.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new HttpException(`User Not found`, HttpStatus.NOT_FOUND);
+    }
+
+    await this.prismaService.user.update({
+      where: {
+        email,
+      },
+      data: {
+        token: null,
+      },
+    });
+
+    return {
+      email: user.email,
     };
   }
 }
