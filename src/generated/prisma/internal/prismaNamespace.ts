@@ -386,7 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Conversion: 'Conversion',
   Compression: 'Compression',
-  User: 'User'
+  User: 'User',
+  UploadUsage: 'UploadUsage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -402,7 +403,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "conversion" | "compression" | "user"
+    modelProps: "conversion" | "compression" | "user" | "uploadUsage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -628,6 +629,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    UploadUsage: {
+      payload: Prisma.$UploadUsagePayload<ExtArgs>
+      fields: Prisma.UploadUsageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UploadUsageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadUsagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UploadUsageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadUsagePayload>
+        }
+        findFirst: {
+          args: Prisma.UploadUsageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadUsagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UploadUsageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadUsagePayload>
+        }
+        findMany: {
+          args: Prisma.UploadUsageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadUsagePayload>[]
+        }
+        create: {
+          args: Prisma.UploadUsageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadUsagePayload>
+        }
+        createMany: {
+          args: Prisma.UploadUsageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UploadUsageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadUsagePayload>[]
+        }
+        delete: {
+          args: Prisma.UploadUsageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadUsagePayload>
+        }
+        update: {
+          args: Prisma.UploadUsageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadUsagePayload>
+        }
+        deleteMany: {
+          args: Prisma.UploadUsageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UploadUsageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UploadUsageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadUsagePayload>[]
+        }
+        upsert: {
+          args: Prisma.UploadUsageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UploadUsagePayload>
+        }
+        aggregate: {
+          args: Prisma.UploadUsageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUploadUsage>
+        }
+        groupBy: {
+          args: Prisma.UploadUsageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UploadUsageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UploadUsageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UploadUsageCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -701,6 +776,16 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const UploadUsageScalarFieldEnum = {
+  id: 'id',
+  ip: 'ip',
+  count: 'count',
+  date: 'date'
+} as const
+
+export type UploadUsageScalarFieldEnum = (typeof UploadUsageScalarFieldEnum)[keyof typeof UploadUsageScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -901,6 +986,7 @@ export type GlobalOmitConfig = {
   conversion?: Prisma.ConversionOmit
   compression?: Prisma.CompressionOmit
   user?: Prisma.UserOmit
+  uploadUsage?: Prisma.UploadUsageOmit
 }
 
 /* Types for Logging */

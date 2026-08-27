@@ -11,7 +11,7 @@ import { ValidationService } from '../validation/validation.service';
 import { UserValidation } from '../user/user.validation';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { email } from 'zod';
+
 
 @Injectable()
 export class AuthService {

@@ -13,7 +13,7 @@ import { UserLoginRequest, UserRegisterRequest } from '../user/user.model';
 import { AuthFilter } from './auth.filter';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { JwtAuthGuard } from './auth.guard';
+import { JwtAuthGuard } from '../guard/auth.guard';
 import { User } from '../user/user.decorator';
 
 @UseFilters(AuthFilter)

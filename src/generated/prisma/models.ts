@@ -11,4 +11,5 @@
 export type * from './models/Conversion'
 export type * from './models/Compression'
 export type * from './models/User'
+export type * from './models/UploadUsage'
 export type * from './commonInputTypes'

@@ -53,7 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Conversion: 'Conversion',
   Compression: 'Compression',
-  User: 'User'
+  User: 'User',
+  UploadUsage: 'UploadUsage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -106,6 +107,16 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const UploadUsageScalarFieldEnum = {
+  id: 'id',
+  ip: 'ip',
+  count: 'count',
+  date: 'date'
+} as const
+
+export type UploadUsageScalarFieldEnum = (typeof UploadUsageScalarFieldEnum)[keyof typeof UploadUsageScalarFieldEnum]
 
 
 export const SortOrder = {

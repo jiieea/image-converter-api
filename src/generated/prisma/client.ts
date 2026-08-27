@@ -54,3 +54,8 @@ export type Compression = Prisma.CompressionModel
  * 
  */
 export type User = Prisma.UserModel
+/**
+ * Model UploadUsage
+ * 
+ */
+export type UploadUsage = Prisma.UploadUsageModel
