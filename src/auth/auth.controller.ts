@@ -38,7 +38,6 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() request: UserLoginRequest) {
     this.logger.info('Login Endpoint run...');
-    this.logger.info('JWT_SECRET:', process.env.JWT_SECRET);
     const user = await this.authService.login(request);
     return {
       user,
