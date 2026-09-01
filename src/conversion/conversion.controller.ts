@@ -14,6 +14,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { OptionalJwtAuthGuard } from '../guard/optional-jwt-auth.guard';
 import { UploadLimitGuard } from '../guard/upload-limit.guard';
 
+@UseGuards(OptionalJwtAuthGuard, UploadLimitGuard)
 @Controller('/convert')
 export class ConversionController {
   constructor(private readonly conversionService: ConversionService) {}
@@ -53,7 +54,6 @@ export class ConversionController {
   }
 
   @Post()
-  @UseGuards(OptionalJwtAuthGuard, UploadLimitGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {

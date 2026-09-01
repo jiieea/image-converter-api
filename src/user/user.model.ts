@@ -8,7 +8,7 @@ export class UserLoginRequest {
   password: string;
 }
 
-export class UserResponse {
+export class  UserResponse {
   email: string;
   token?: string;
 }
