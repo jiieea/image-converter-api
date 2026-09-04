@@ -35,7 +35,16 @@ model Compression {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  username String
-  age      Int
+  email    String  @id
+  password String
+  token    String?
+}
+
+model UploadUsage {
+  id    String   @id @default(uuid())
+  ip    String
+  count Int      @default(0)
+  date  DateTime @db.Date
+
+  @@unique([ip, date])
 }

@@ -7,10 +7,14 @@ import {
   UploadedFile,
   UseInterceptors,
   UploadedFiles,
+  UseGuards,
 } from '@nestjs/common';
 import { ConversionService } from './conversion.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { OptionalJwtAuthGuard } from '../guard/optional-jwt-auth.guard';
+import { UploadLimitGuard } from '../guard/upload-limit.guard';
 
+@UseGuards(OptionalJwtAuthGuard, UploadLimitGuard)
 @Controller('/convert')
 export class ConversionController {
   constructor(private readonly conversionService: ConversionService) {}
@@ -48,6 +52,7 @@ export class ConversionController {
   sayHello() {
     return 'Hello World!';
   }
+
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {
