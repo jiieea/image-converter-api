@@ -53,7 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Conversion: 'Conversion',
   Compression: 'Compression',
-  User: 'User'
+  User: 'User',
+  UploadUsage: 'UploadUsage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -100,12 +101,22 @@ export type CompressionScalarFieldEnum = (typeof CompressionScalarFieldEnum)[key
 
 
 export const UserScalarFieldEnum = {
-  id: 'id',
-  username: 'username',
-  age: 'age'
+  email: 'email',
+  password: 'password',
+  token: 'token'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const UploadUsageScalarFieldEnum = {
+  id: 'id',
+  ip: 'ip',
+  count: 'count',
+  date: 'date'
+} as const
+
+export type UploadUsageScalarFieldEnum = (typeof UploadUsageScalarFieldEnum)[keyof typeof UploadUsageScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -122,4 +133,12 @@ export const QueryMode = {
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
