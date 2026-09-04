@@ -63,6 +63,20 @@ export class CleanupService {
     );
   }
 
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async clearUpUploadUsage() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const result = await this.prismaService.uploadUsage.deleteMany({
+      where: {
+        date: {
+          lt: new Date(),
+        },
+      },
+    });
+    this.logger.info(`Cleaned up ${result.count} stale UploadUsage row(s)`);
+  }
+
   private async clearRecord(
     entity: string,
     records: expireableRecord[],
@@ -85,19 +99,5 @@ export class CleanupService {
       }
     }
     return { success, failed };
-  }
-
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async clearUpUploadUsage() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const result = await this.prismaService.uploadUsage.deleteMany({
-      where: {
-        date: {
-          lt: new Date(),
-        },
-      },
-    });
-    this.logger.info(`Cleaned up ${result.count} stale UploadUsage row(s)`);
   }
 }
